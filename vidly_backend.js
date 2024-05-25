@@ -34,21 +34,73 @@ app.get(url, (req, res) => {
 app.post(url, (req, res) => {
     const result = validateGenre(req, res)
     if (!result) return
-    let genre = genres.find(g => g.genre === req.body.genre)
+    let existed = existedGenre(req.body.genre)
 
     //* reject if the genre is already exist
-    if (genre) {
+    if (existed) {
         res.status(400).send("Genre already exist");
     } else {
         genre = {
             genre: req.body.genre,
-            movie: [req.body.movie]
+            movies: [req.body.movies]
         }
         genres.push(genre)
         res.send(genre)
     }
 
 
+})
+
+// put request
+/**
+ * Check whether the genre existed
+ * If it does, check if the movie is addded
+ * If not, create a new object and append it to the origin
+ */
+app.put(url + '/:genre', (req, res) => {
+    if (!validateGenre(req, res)) return;
+    let genre = existedGenre(req.params.genre)
+    if (genre) {
+        req.body.movies.forEach(element => {
+            if (!genre.movies.includes(element)) {
+                genre.movies.push(element)
+            }
+        });
+
+    } else {
+        genre = {
+            genre: req.body.genre,
+            movies: req.body.movies
+        }
+        genres.push(genre);
+    }
+    res.send(genre)
+})
+
+// delete request
+/**
+ * Check whether the genre exist
+ * If exist, delete and return it
+ */
+app.delete(url + '/:genre', (req, res) => {
+    let genre = existedGenre(req.params.genre)
+    if (genre) {
+        const genreIndex = genres.indexOf(genre)
+        genres.splice(genreIndex, 1)
+        res.send(genre)
+        return
+    }
+    res.send("The genre does not exist")
+})
+
+// get movies by genre
+app.get(url + '/:genre', (req, res) => {
+    let genre = existedGenre(req.params.genre)
+    if (genre) {
+        res.send(genre.movies)
+        return
+    }
+    res.send("The genre does not exist")
 })
 
 
@@ -62,20 +114,22 @@ function validateGenre(req, res) {
         movies: Joi.array().items(Joi.any()).min(1).required()
     })
 
-    let { error1 } = schema.validate(req.body)
-    if (!error1) {
-        console.log(error1)
-        res.status(400).send("Genre is missing ")
+    const { error } = schema.validate(req.body);
+    if (error) {
+        res.status(400).send(error.details[0].message);
         return false
+    } else {
+        return true
     }
+}
 
-    let { error2 } = schema.validate(req.body.genre)
-    if (!error2) {
-        res.status(400).send("Movie is missing ")
-        return false
-    }
-
-    return true
+/**
+ * check whether the genre existed
+ * @param {*} genre : genre of movie
+ */
+function existedGenre(genre) {
+    let result = genres.find(g => g.genre === genre)
+    return result
 }
 
 const port = process.env.PORT || 3000
