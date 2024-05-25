@@ -1,6 +1,8 @@
 const express = require('express')
 const app = express()
 
+// to enable req.body.content
+app.use(express.json());
 
 // array of available posts
 const posts = [
@@ -29,8 +31,16 @@ app.get("/posts/:id", (req, res) => {
     }
 })
 
-app.get("/someurl/:name/:date", (req, res) => {
-    res.send(req.query)
+// ----------
+// POST request handling
+app.post("/posts", (req, res) => {
+    const post = {
+        id: posts.length + 1,
+        content: req.body.content
+    }
+
+    posts.push(post);
+    res.send(post)
 })
 
 const port = process.env.PORT || 3000
