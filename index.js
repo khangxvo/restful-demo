@@ -1,5 +1,12 @@
 const express = require('express')
 const app = express()
+const log = require('./logger')
+const config = require('config')
+
+app.use(log)
+
+console.log("App Name: ", config.get("name"))
+console.log("Mail Server: ", config.get("mail.host"))
 
 app.get('/', (req, res) => {
     res.send("Hello World!")
