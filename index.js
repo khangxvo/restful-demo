@@ -5,11 +5,15 @@ const config = require('config')
 
 app.use(log)
 
+app.set('view engine', 'pug');
+app.set('views', './views')
+
 console.log("App Name: ", config.get("name"))
 console.log("Mail Server: ", config.get("mail.host"))
+console.log("Password: ", config.get("mail.password"))
 
 app.get('/', (req, res) => {
-    res.send("Hello World!")
+    res.render('index', { title: "My express app", message: 'Hello' })
 })
 
 app.get('/someurl', (req, res) => {
